@@ -121,11 +121,21 @@ func ParseProto(rule *Rule, tokens []string) ([]string, error) {
 	return tokens, nil
 }
 
+func ParseQuick(rule *Rule, tokens []string) ([]string, error) {
+	if tokens[0] == "quick" {
+		rule.Quick = true
+		return tokens[1:], nil
+	}
+
+	return tokens, nil
+}
+
 func ParseRule(line string) (Rule, error) {
 	parsers := []ParseFunc{
 		ParseAction,
 		ParseDirection,
 		ParseLog,
+		ParseQuick,
 		ParseInterface,
 		ParseAF,
 		ParseProto,
@@ -134,7 +144,7 @@ func ParseRule(line string) (Rule, error) {
 		ParseNAT,
 	}
 
-	tokens := strings.Split(line, " ")
+	tokens := Tokenize(line)
 
 	r := Rule{}
 	for _, p := range parsers {
@@ -155,4 +165,8 @@ func ParseRule(line string) (Rule, error) {
 	}
 
 	return r, nil
+}
+
+func Tokenize(line string) []string {
+	return strings.Split(line, " ")
 }

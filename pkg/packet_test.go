@@ -4,86 +4,57 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
-func Test_Evaluate(t *testing.T) {
+func Test_Match(t *testing.T) {
 	cases := []struct {
-		name              string
-		ruleSet           RuleSet
-		packet            Packet
-		wantErr           string
-		wantMatchingRules []Rule
+		name      string
+		rule      Rule
+		packet    Packet
+		wantMatch bool
 	}{
 		{
-			name: "block all blocks all",
-			ruleSet: RuleSet{
-				{
-					Action:    Block,
-					From:      Any,
-					To:        Any,
-					Interface: Any,
-				},
-			},
-			packet: Packet{},
-			wantMatchingRules: []Rule{
-				{Action: Block, From: Any, To: Any, Interface: Any},
-			},
+			name:      "same interface matches",
+			wantMatch: true,
+			packet:    Packet{Interface: "em0"},
+			rule:      Rule{Interface: "em0"},
 		},
 		{
-			name: "pass all passes all",
-			ruleSet: RuleSet{
-				BlockAll,
-			},
-			packet: Packet{},
-			wantMatchingRules: []Rule{
-				{Action: Pass, From: Any, To: Any, Interface: Any},
-			},
+			name:      "different interface does not match",
+			wantMatch: false,
+			packet:    Packet{Interface: "em0"},
+			rule:      Rule{Interface: "em1"},
 		},
 		{
-			name: "passes in on correct interface and matches all rules",
-			ruleSet: RuleSet{
-				BlockAll,
-				{Action: Pass, From: Any, To: Any, Interface: "em0"},
-			},
-			packet: Packet{
-				Source:      "10.0.0.1",
-				Destination: "10.0.0.2",
-				Interface:   "em0",
-			},
-			wantMatchingRules: []Rule{},
+			name:      "matches from ipv4-address",
+			wantMatch: true,
+			packet:    Packet{Source: "192.168.0.2"},
+			rule:      Rule{Interface: Any, From: "192.168.0.2"},
 		},
 		{
-			name: "blocks on incorrect interface",
-			ruleSet: RuleSet{
-				BlockAll,
-				{Action: Pass, From: Any, To: Any, Interface: "em0"},
-			},
-			packet: Packet{
-				Source:      "10.0.0.1",
-				Destination: "10.0.0.2",
-				Interface:   "em1",
-			},
-			wantMatchingRules: []Rule{},
+			name:      "does not match different from ipv4-address",
+			wantMatch: false,
+			packet:    Packet{Interface: "em0", Source: "192.168.0.3"},
+			rule:      Rule{Interface: "em0", From: "192.168.0.2"},
 		},
 		{
-			name: "Block all quick blocks all quick",
+			name:      "matches ipv4 net",
+			wantMatch: true,
+			packet:    Packet{Source: "192.168.0.3"},
+			rule:      Rule{Interface: Any, From: "192.168.0.0/24"},
+		},
+		{
+			name:      "does not match ipv4 address outside of net",
+			wantMatch: false,
+			packet:    Packet{Source: "172.16.0.3"},
+			rule:      Rule{Interface: Any, From: "192.168.0.0/24"},
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			lastRule, matchingRules, err := tc.ruleSet.Evaluate(tc.packet)
-
-			if tc.wantErr != "" {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), tc.wantErr)
-				return
-			}
-
-			require.NoError(t, err)
-			assert.Equal(t, tc.wantMatchingRules, matchingRules)
-			assert.Equal(t, tc.wantMatchingRules[len(tc.wantMatchingRules)-1], lastRule)
+			matches := tc.rule.Matches(tc.packet)
+			assert.Equal(t, tc.wantMatch, matches)
 		})
 	}
 }

@@ -3,7 +3,7 @@
 .SHELL ?= /bin/sh
 
 PFTEST ?= bin/pftest
-GO_FILES := cmd/pftest/main.go
+GO_FILES := $(wildcard *.go)
 
 all: $(PFTEST)
 

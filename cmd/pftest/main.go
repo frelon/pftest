@@ -14,7 +14,7 @@ func main() {
 
 	rules, err := pkg.LoadRuleSetFile(*rulesPath)
 	if err != nil {
-		log.Error("failed loading rules", err)
+		log.Errorf("failed to load rules: %v", err)
 		return
 	}
 
