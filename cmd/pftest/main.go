@@ -1,24 +1,22 @@
 package main
 
 import (
-	"fmt"
-	"net"
+	"flag"
 
+	"frelon.se/pftest/pkg"
 	log "github.com/sirupsen/logrus"
 )
 
 func main() {
-	interfaces, err := net.Interfaces()
+	var rulesPath = flag.String("f", "/etc/pf.conf", "path to rule set")
+
+	flag.Parse()
+
+	rules, err := pkg.LoadRuleSetFile(*rulesPath)
 	if err != nil {
-		log.Error(err)
+		log.Error("failed loading rules", err)
 		return
 	}
 
-	fmt.Println("TEST")
-
-	for _, i := range interfaces {
-		fmt.Println(i)
-	}
-
-	fmt.Println("Hello world")
+	log.Infof("loaded %v rules", len(rules))
 }

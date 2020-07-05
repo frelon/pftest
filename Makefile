@@ -8,9 +8,13 @@ GO_FILES := cmd/pftest/main.go
 all: $(PFTEST)
 
 $(PFTEST): $(GO_FILES)
-	CGO_ENABLED=0 GOOS=openbsd go build -o $(PFTEST) ./cmd/pftest/main.go
+	go build -o $(PFTEST) ./cmd/pftest/main.go
+	# CGO_ENABLED=0 GOOS=openbsd go build -o $(PFTEST) ./cmd/pftest/main.go
+
+test:
+	go test ./...
 
 clean:
 	rm -rf $(PFTEST)
 
-.PHONY: all clean
+.PHONY: all clean test
