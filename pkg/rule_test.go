@@ -46,6 +46,21 @@ pass out all`,
 			wantRules: RuleSet{},
 		},
 		{
+			name: "replaces variable inside other variable",
+			ruleset: `var1 = test
+var2 = $var1
+pass on $var2 all`,
+			wantRules: RuleSet{
+				{
+					Action:    Pass,
+					Direction: Any,
+					Interface: "test",
+					From:      Any,
+					To:        Any,
+				},
+			},
+		},
+		{
 			name: "replaces variables in following rules",
 			ruleset: `var = "test"
 block on $var all`,

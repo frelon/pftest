@@ -48,12 +48,13 @@ func LoadRuleSet(reader io.Reader) (RuleSet, error) {
 			continue
 		}
 
-		if IsVariableDeclaration(line) {
-			vars = AddVar(vars, line)
+		replaced := ReplaceVars(vars, line)
+		if IsVariableDeclaration(replaced) {
+			vars = AddVar(vars, replaced)
 			continue
 		}
 
-		rule, err := ParseRule(ReplaceVars(vars, line))
+		rule, err := ParseRule(replaced)
 		if err != nil {
 			return rules, err
 		}

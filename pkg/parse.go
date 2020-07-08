@@ -170,3 +170,4 @@ func ParseRule(line string) (Rule, error) {
 func Tokenize(line string) []string {
 	return strings.Split(line, " ")
 }
+
