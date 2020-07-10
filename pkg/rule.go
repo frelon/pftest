@@ -43,12 +43,17 @@ var (
 
 type Rule struct {
 	Action        Action
+	BlockPolicy   string
 	Direction     Direction
 	Interface     string
 	From          string
+	FromPort      string
 	To            string
+	ToPort        string
 	AddressFamily string
 	Protocol      string
+	NAT           string
+	RedirectTo    string
 	Quick         bool
 }
 

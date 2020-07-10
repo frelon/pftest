@@ -4,17 +4,20 @@ import (
 	"bufio"
 	"io"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/pkg/errors"
 )
 
-func LoadRuleSetFile(filename string) (RuleSet, error) {
-	rules := RuleSet{}
+var (
+	listRegex = regexp.MustCompile(`\{.+?\}`)
+)
 
+func LoadRuleSetFile(filename string) (RuleSet, error) {
 	f, err := os.Open(filename)
 	if err != nil {
-		return rules, errors.Wrapf(err, "failed to open file %v", filename)
+		return nil, errors.Wrapf(err, "failed to open file %v", filename)
 	}
 
 	return LoadRuleSet(f)
@@ -54,12 +57,15 @@ func LoadRuleSet(reader io.Reader) (RuleSet, error) {
 			continue
 		}
 
-		rule, err := ParseRule(replaced)
-		if err != nil {
-			return rules, err
-		}
+		lines := ExplodeList(replaced)
+		for _, l := range lines {
+			rule, err := ParseRule(l)
+			if err != nil {
+				return rules, err
+			}
 
-		rules = append(rules, rule)
+			rules = append(rules, rule)
+		}
 	}
 
 	return rules, nil
@@ -86,7 +92,8 @@ func IsRuleLine(line string) bool {
 
 	return !strings.HasPrefix(line, "#") &&
 		!strings.HasPrefix(line, "set") &&
-		!strings.HasPrefix(line, "table")
+		!strings.HasPrefix(line, "table") &&
+		!strings.HasPrefix(line, "antispoof")
 }
 
 func IsVariableDeclaration(line string) bool {
@@ -99,4 +106,31 @@ func AddVar(vars VariableSet, line string) VariableSet {
 	value := strings.TrimSpace(tokens[1])
 	vars[name] = value
 	return vars
+}
+
+func ExplodeList(line string) []string {
+	lines := []string{}
+	m := listRegex.FindString(line)
+	if m == "" {
+		return []string{line}
+	}
+
+	cleaned := strings.ReplaceAll(m, ",", "")
+	cleaned = strings.ReplaceAll(cleaned, "{", "")
+	cleaned = strings.ReplaceAll(cleaned, "}", "")
+	cleaned = strings.TrimSpace(cleaned)
+	split := strings.Split(cleaned, " ")
+
+	for _, t := range split {
+		replaced := strings.Replace(line, m, t, 1)
+		lines = append(lines, replaced)
+	}
+
+	ret := []string{}
+	for _, l := range lines {
+		exploded := ExplodeList(l)
+		ret = append(ret, exploded...)
+	}
+
+	return ret
 }

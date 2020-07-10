@@ -17,4 +17,7 @@ test:
 clean:
 	rm -rf $(PFTEST)
 
-.PHONY: all clean test
+lint:
+	golangci-lint run
+
+.PHONY: all clean test lint
