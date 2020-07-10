@@ -30,14 +30,14 @@ func main() {
 	log.Infof("loaded %v tests", len(tests))
 
 	pass := pkg.Action(pkg.Pass)
-	RunTests(pass, rules, tests[pass])
+    err = RunTests(pass, rules, tests[pass])
 	if err != nil {
 		log.Errorf("error running passing tests: %v", err)
 		return
 	}
 
 	block := pkg.Action(pkg.Block)
-	RunTests(block, rules, tests[block])
+	err = RunTests(block, rules, tests[block])
 	if err != nil {
 		log.Errorf("error running block tests: %v", err)
 		return
