@@ -2,10 +2,16 @@ package main
 
 import (
 	"flag"
+	"os"
 
 	"frelon.se/pftest/pkg"
 	log "github.com/sirupsen/logrus"
 )
+
+type TestResult struct {
+	Successful pkg.TestCases
+	Failed     pkg.TestCases
+}
 
 func main() {
 	var rulesPath = flag.String("f", "/etc/pf.conf", "path to rule file")
@@ -29,53 +35,49 @@ func main() {
 
 	log.Infof("loaded %v tests", len(tests))
 
-	pass := pkg.Action(pkg.Pass)
-    err = RunTests(pass, rules, tests[pass])
+	result, err := RunTests(rules, tests)
 	if err != nil {
 		log.Errorf("error running passing tests: %v", err)
 		return
 	}
 
-	block := pkg.Action(pkg.Block)
-	err = RunTests(block, rules, tests[block])
-	if err != nil {
-		log.Errorf("error running block tests: %v", err)
+	if len(result.Failed) > 0 {
+		log.Errorf("failed, %v/%v tests failed", len(result.Failed), len(tests))
+		os.Exit(1)
 		return
 	}
 
-	log.Infof("done, exiting")
+	log.Infof("successful, %v tests passed", len(result.Successful))
 }
 
-func RunTests(expected pkg.Action, rules pkg.RuleSet, packets []pkg.Packet) error {
-	var (
-		success int
-		fail    int
-	)
+func RunTests(rules pkg.RuleSet, packets pkg.TestCases) (TestResult, error) {
+	fail := pkg.TestCases{}
+	success := pkg.TestCases{}
 
 	for _, p := range packets {
-		lastRule, _, err := rules.Evaluate(p)
+		lastRule, _, err := rules.Evaluate(p.Packet)
 		if err != nil {
-			return err
+			return TestResult{}, err
 		}
 
 		if lastRule == nil {
-			log.Warning("no matching rule")
-			fail++
+			log.Warningf("no matching rule: %v", p)
+			fail = append(fail, p)
 			continue
 		}
 
-		if lastRule.Action == expected {
-			success++
+		if lastRule.Action == p.ExpectedAction {
+			success = append(success, p)
 		} else {
-			fail++
+			log.Errorf("test failed: %v", p)
+			fail = append(fail, p)
 		}
 	}
 
-	if fail == 0 {
-		log.Infof("All tests successful")
-	} else {
-		log.Warningf("%v/%v tests failed", fail, fail+success)
+	result := TestResult{
+		Successful: success,
+		Failed:     fail,
 	}
 
-	return nil
+	return result, nil
 }

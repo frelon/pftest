@@ -7,12 +7,17 @@ import (
 	"strings"
 )
 
-type TestCases map[Action][]Packet
+type TestCases []TestCase
 
 type Packet struct {
 	Source      string
 	Destination string
 	Interface   string
+}
+
+type TestCase struct {
+	ExpectedAction Action
+	Packet         Packet
 }
 
 func LoadTestsFile(path string) (TestCases, error) {
@@ -36,15 +41,17 @@ func LoadTests(reader io.Reader) (TestCases, error) {
 
 		tokens := strings.Split(line, " ")
 
-		packet := Packet{
-			Source:      tokens[1],
-			Destination: tokens[2],
-			Interface:   tokens[3],
+		testCase := TestCase{
+			Packet: Packet{
+				Source:      tokens[1],
+				Destination: tokens[2],
+				Interface:   tokens[3],
+			},
+
+			ExpectedAction: Action(tokens[0]),
 		}
 
-		action := Action(tokens[0])
-
-		tests[action] = append(tests[action], packet)
+		tests = append(tests, testCase)
 	}
 	return tests, nil
 }
