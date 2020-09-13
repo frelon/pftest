@@ -23,7 +23,7 @@ func Test_LoadRuleset(t *testing.T) {
 			name:    "single rule returns 1 rule",
 			ruleset: "block all",
 			wantRules: RuleSet{
-				{Action: Block, Direction: Any, From: Any, To: Any},
+				{Action: Block, Direction: Any, From: Any, To: Any, Interface: Any},
 			},
 		},
 		{
@@ -74,7 +74,7 @@ block on $var all`,
   out \
   all`,
 			wantRules: RuleSet{
-				{Action: Pass, Direction: Out, From: Any, To: Any},
+				{Action: Pass, Direction: Out, From: Any, To: Any, Interface: Any},
 			},
 		},
 	}
