@@ -31,8 +31,8 @@ func Test_LoadRuleset(t *testing.T) {
 			ruleset: `block all
 pass out all`,
 			wantRules: RuleSet{
-				{Action: Block, Direction: Any, From: Any, To: Any},
-				{Action: Pass, Direction: Out, From: Any, To: Any},
+				{Action: Block, Direction: Any, From: Any, To: Any, Interface: Any},
+				{Action: Pass, Direction: Out, From: Any, To: Any, Interface: Any},
 			},
 		},
 		{
