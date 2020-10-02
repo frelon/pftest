@@ -1,5 +1,11 @@
 package pkg
 
+import (
+	"fmt"
+	"net"
+	"strings"
+)
+
 type Action string
 
 type Direction string
@@ -40,6 +46,8 @@ var (
 		Interface: Any,
 	}
 )
+
+type VariableSet map[string]string
 
 type Rule struct {
 	Action        Action
@@ -86,15 +94,29 @@ func (r Rule) Matches(packet Packet) bool {
 		return false
 	}
 
-	if r.From != Any && r.From != packet.Source {
+	if r.From != Any && !matchesAddress(r.From, packet.Source) {
 		return false
 	}
 
-	if r.To != Any && r.To != packet.Destination {
+	if r.To != Any && !matchesAddress(r.To, packet.Destination) {
 		return false
 	}
 
 	return true
 }
 
-type VariableSet map[string]string
+func matchesAddress(rawNet, rawAddress string) bool {
+	if strings.Contains(rawNet, "/") {
+		address := net.ParseIP(rawAddress)
+		_, net, err := net.ParseCIDR(rawNet)
+
+		if err != nil {
+			fmt.Printf("Err parsing net: %v\n", err)
+			return false
+		}
+
+		return net.Contains(address)
+	}
+
+	return rawAddress == rawNet
+}

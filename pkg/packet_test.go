@@ -49,6 +49,12 @@ func Test_Match(t *testing.T) {
 			packet:    Packet{Source: "172.16.0.3"},
 			rule:      Rule{Interface: Any, From: "192.168.0.0/24"},
 		},
+		{
+			name:      "matches ipv4 net",
+			wantMatch: true,
+			packet:    Packet{Source: "192.168.0.3"},
+			rule:      Rule{Interface: Any, From: "192.168.0.0/24"},
+		},
 	}
 
 	for _, tc := range cases {
