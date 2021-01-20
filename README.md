@@ -1,6 +1,7 @@
 # PF Test
 
 ![Go](https://github.com/frelon/pftest/workflows/Go/badge.svg)
+[![Go Report Card](https://goreportcard.com/badge/github.com/frelon/pftest)](https://goreportcard.com/report/github.com/frelon/pftest)
 
 PF Test is a tool to test [pf](https://man.openbsd.org/pf) rules.
 It does this by loading a rule file and a file with tests and then run each test against the rules.
