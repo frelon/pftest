@@ -15,7 +15,7 @@ test:
 	go test ./...
 
 clean:
-	rm -rf $(PFTEST)
+	rm $(PFTEST)
 
 lint:
 	golangci-lint run
